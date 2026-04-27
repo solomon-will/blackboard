@@ -5,12 +5,16 @@ import threading
 import json
 
 # --- 1. Networking & User Setup ---
+root = tk.Tk()
+root.geometry('800x600')
 username = simpledialog.askstring("Username", "What is your name?") or "User"
+root.title(f'Networking Project - {username}')
+
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected = False
 try:
-    client_socket.connect(('10.186.65.252', 5555)) 
+    client_socket.connect(('10.5.1.235', 5555)) 
     connected = True
 except:
     print("Running in offline mode.")
@@ -143,9 +147,7 @@ def clear_board():
     send_to_server({'type': 'clear'})
 
 # --- 5. Main Window & Layout ---
-root = tk.Tk()
-root.geometry('800x600')
-root.title(f'Networking Project - {username}')
+
 
 toolbar = tk.Frame(root)
 toolbar.pack(fill=tk.X)
