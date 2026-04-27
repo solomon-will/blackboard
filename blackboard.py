@@ -61,7 +61,20 @@ def receive_thread():
                 
                 elif data['type'] == 'clear':
                     # Only delete "ink", keeps labels and cursors safe
-                    canvas.delete("ink") 
+                    canvas.delete("ink")
+
+                elif data['type'] == 'erase':
+                    def erase_remote(d=data):
+                        w = canvas.winfo_width()
+                        h = canvas.winfo_height()
+                        rx = d['x'] * w
+                        ry = d['y'] * h
+                        size = d['size']
+                        items = canvas.find_overlapping(rx - size, ry - size, rx + size, ry + size)
+                        for item in items:
+                            if "ink" in canvas.gettags(item):
+                                canvas.delete(item)
+                    root.after(0, erase_remote)
         except:
             break
 
@@ -80,6 +93,7 @@ def draw_on_canvas(event):
         for item in items:
             if "ink" in canvas.gettags(item):
                 canvas.delete(item)
+        send_to_server({'type': 'erase', 'x': x / canvas.winfo_width(), 'y': y / canvas.winfo_height(), 'size': size})
     else:
         canvas.create_line(last_x, last_y, x, y, width=size, fill=current_color,
                            capstyle=tk.ROUND, smooth=True, tags="ink")
