@@ -43,11 +43,14 @@ def receive_thread():
                 data = json.loads(line)
                 
                 if data['type'] == 'draw':
-                    # Added tags="ink" here so remote drawings can be erased too
-                    canvas.create_line(data['x1'], data['y1'], data['x2'], data['y2'], 
-                                       width=data['size'], fill=data['color'], 
-                                       capstyle=tk.ROUND, smooth=True, tags="ink")
-                
+                    w = canvas.winfo_width()
+                    h = canvas.winfo_height()
+                    canvas.create_line(
+                        data['x1'] * w, data['y1'] * h,
+                        data['x2'] * w, data['y2'] * h,
+                        width=data['size'], fill=data['color'],
+                        capstyle=tk.ROUND, smooth=True, tags="ink"
+                    )
                 elif data['type'] == 'move':
                     user, rx, ry = data['user'], data['x'], data['y']
                     if user not in remote_labels:
@@ -73,20 +76,22 @@ def draw_on_canvas(event):
     size = slider.get()
     
     if erasing:
-        # Find everything in the eraser area
         items = canvas.find_overlapping(x - size, y - size, x + size, y + size)
         for item in items:
-            # CHECK THE TAG: Only delete if it's "ink"
             if "ink" in canvas.gettags(item):
                 canvas.delete(item)
-        # Optional: Broadcast eraser movement if you want others to see things disappear
-        # send_to_server({'type': 'erase', 'x': x, 'y': y, 'size': size})
     else:
-        # Added tags="ink" here
-        canvas.create_line(last_x, last_y, x, y, width=size, fill=current_color, 
+        canvas.create_line(last_x, last_y, x, y, width=size, fill=current_color,
                            capstyle=tk.ROUND, smooth=True, tags="ink")
-        send_to_server({'type': 'draw', 'x1': last_x, 'y1': last_y, 'x2': x, 'y2': y, 
-                        'color': current_color, 'size': size})
+        send_to_server({
+            'type': 'draw',
+            'x1': last_x / canvas.winfo_width(),
+            'y1': last_y / canvas.winfo_height(),
+            'x2': x / canvas.winfo_width(),
+            'y2': y / canvas.winfo_height(),
+            'color': current_color,
+            'size': size
+        })
     
     last_x, last_y = x, y
 

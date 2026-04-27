@@ -17,35 +17,40 @@ def broadcast(message, sender_conn):
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
     
-    # send existing drawings to the new client
     for event in draw_history:
         conn.send(event)
     
+    buffer = ""
     while True:
         try:
-            data = conn.recv(4096)
-            if not data:
+            chunk = conn.recv(4096).decode('utf-8')
+            if not chunk:
                 break
+            buffer += chunk
             
-            msg = json.loads(data.decode('utf-8').strip())
-            
-            if msg.get('type') == 'draw':
-                draw_history.append(data)
-            elif msg.get('type') == 'clear':
-                draw_history.clear()
-            
-            broadcast(data, conn)
-        except:
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                if not line:
+                    continue
+                data = json.loads(line)
+                raw = (line + '\n').encode('utf-8')
+                
+                if data.get('type') == 'draw':
+                    draw_history.append(raw)
+                elif data.get('type') == 'clear':
+                    draw_history.clear()
+                
+                broadcast(raw, conn)
+        except Exception as e:
+            print(f"[ERROR] {e}")
             break
     
     print(f"[DISCONNECT] {addr} disconnected.")
-    clients.remove(conn)
-    conn.close()
-    
-    print(f"[DISCONNECT] {addr} disconnected.")
-    clients.remove(conn)
+    if conn in clients:
+        clients.remove(conn)
     conn.close()
 
+   
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # '0.0.0.0' allows connections from other machines on the network
 server.bind(('0.0.0.0', 5555)) 
