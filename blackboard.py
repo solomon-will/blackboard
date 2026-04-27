@@ -10,7 +10,7 @@ username = simpledialog.askstring("Username", "What is your name?") or "User"
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected = False
 try:
-    client_socket.connect(('localhost', 5555)) 
+    client_socket.connect(('10.186.65.252', 5555)) 
     connected = True
 except:
     print("Running in offline mode.")
