@@ -1,7 +1,9 @@
 import socket
 import threading
+import json
 
 clients = []
+draw_history = []
 
 def broadcast(message, sender_conn):
     """Sends data to everyone except the person who sent it."""
@@ -14,14 +16,31 @@ def broadcast(message, sender_conn):
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
+    
+    # send existing drawings to the new client
+    for event in draw_history:
+        conn.send(event)
+    
     while True:
         try:
-            data = conn.recv(1024)
+            data = conn.recv(4096)
             if not data:
                 break
+            
+            msg = json.loads(data.decode('utf-8').strip())
+            
+            if msg.get('type') == 'draw':
+                draw_history.append(data)
+            elif msg.get('type') == 'clear':
+                draw_history.clear()
+            
             broadcast(data, conn)
         except:
             break
+    
+    print(f"[DISCONNECT] {addr} disconnected.")
+    clients.remove(conn)
+    conn.close()
     
     print(f"[DISCONNECT] {addr} disconnected.")
     clients.remove(conn)
