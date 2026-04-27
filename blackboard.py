@@ -10,7 +10,7 @@ username = simpledialog.askstring("Username", "What is your name?") or "User"
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected = False
 try:
-    client_socket.connect(('10.5.3.90', 5555)) 
+    client_socket.connect(('localhost', 5555)) 
     connected = True
 except:
     print("Running in offline mode.")
@@ -60,7 +60,6 @@ def receive_thread():
                         canvas.tag_raise(remote_labels[user])
                 
                 elif data['type'] == 'clear':
-                    # Only delete "ink", keeps labels and cursors safe
                     canvas.delete("ink")
 
                 elif data['type'] == 'erase':
@@ -115,7 +114,6 @@ def update_cursor(event):
     canvas.coords(cursor_circle, x - size, y - size, x + size, y + size)
     canvas.coords(my_label, x, y - 10)
     
-    # Ensure the UI stays ON TOP of the drawings
     canvas.tag_raise(cursor_circle)
     canvas.tag_raise(my_label)
     for label in remote_labels.values():
@@ -141,7 +139,7 @@ def pick_color():
     if color: set_color(color)
 
 def clear_board():
-    canvas.delete("ink") # Only clear the drawings
+    canvas.delete("ink") 
     send_to_server({'type': 'clear'})
 
 # --- 5. Main Window & Layout ---
@@ -172,7 +170,6 @@ tk.Button(toolbar, text='Clear All', command=clear_board).pack(side=tk.LEFT)
 canvas = tk.Canvas(root, bg='#121111', highlightthickness=0)
 canvas.pack(fill=tk.BOTH, expand=True)
 
-# These do NOT have the "ink" tag, so they won't be erased
 cursor_circle = canvas.create_oval(0, 0, 0, 0, outline='cyan')
 my_label = canvas.create_text(0, 0, text=username, fill="#EB00FF")
 

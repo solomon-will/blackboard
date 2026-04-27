@@ -52,7 +52,6 @@ def handle_client(conn, addr):
 
    
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# '0.0.0.0' allows connections from other machines on the network
 server.bind(('0.0.0.0', 5555)) 
 server.listen()
 
