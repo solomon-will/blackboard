@@ -135,7 +135,9 @@ toolbar.pack(fill=tk.X)
 
 colors = ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#ffffff']
 for color in colors:
-    tk.Button(toolbar, bg=color, width=2, command=lambda c=color: set_color(c)).pack(side=tk.LEFT)
+    lbl = tk.Label(toolbar, bg=color, width=3, relief='raised', cursor='hand2')
+    lbl.bind('<Button-1>', lambda e, c=color: set_color(c))
+    lbl.pack(side=tk.LEFT, padx=1)
 
 slider = tk.Scale(toolbar, from_=1, to=50, orient=tk.HORIZONTAL, label='Brush Size')
 slider.pack(side=tk.LEFT)
