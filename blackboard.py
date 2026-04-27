@@ -54,9 +54,9 @@ def receive_thread():
                 elif data['type'] == 'move':
                     user, rx, ry = data['user'], data['x'], data['y']
                     if user not in remote_labels:
-                        remote_labels[user] = canvas.create_text(rx, ry-15, text=user, fill="white")
+                        remote_labels[user] = canvas.create_text(rx, ry-10, text=user, fill="white")
                     else:
-                        canvas.coords(remote_labels[user], rx, ry-15)
+                        canvas.coords(remote_labels[user], rx, ry-10)
                         canvas.tag_raise(remote_labels[user])
                 
                 elif data['type'] == 'clear':
@@ -99,7 +99,7 @@ def update_cursor(event):
     size = slider.get() + 2
     x, y = event.x, event.y
     canvas.coords(cursor_circle, x - size, y - size, x + size, y + size)
-    canvas.coords(my_label, x, y - 15)
+    canvas.coords(my_label, x, y - 10)
     
     # Ensure the UI stays ON TOP of the drawings
     canvas.tag_raise(cursor_circle)
@@ -160,7 +160,7 @@ canvas.pack(fill=tk.BOTH, expand=True)
 
 # These do NOT have the "ink" tag, so they won't be erased
 cursor_circle = canvas.create_oval(0, 0, 0, 0, outline='cyan')
-my_label = canvas.create_text(0, 0, text=username, fill="yellow")
+my_label = canvas.create_text(0, 0, text=username, fill="#EB00FF")
 
 canvas.bind('<ButtonPress-1>', start_draw)
 canvas.bind('<B1-Motion>', lambda e: (draw_on_canvas(e), update_cursor(e)))
