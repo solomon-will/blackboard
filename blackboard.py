@@ -14,9 +14,8 @@ root.title(f'Networking Project - {username}')
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected = False
 try:
-    client_socket.connect(('10.40.64.58', 5555)) 
+    client_socket.connect(('172.20.10.2', 5555)) 
     connected = True
-
 except:
     print("Running in offline mode.")
 
@@ -24,12 +23,9 @@ except:
 last_x, last_y = None, None
 current_color = "#FFFFFF"
 erasing = False
-remote_labels = {}
-connected_users = [username]
-
+remote_labels = {} 
 
 # --- 3. Networking Functions ---
-# Sends a dictionary as JSON to the server
 def send_to_server(data_dict):
     if connected:
         try:
@@ -37,7 +33,7 @@ def send_to_server(data_dict):
             client_socket.send(message.encode('utf-8'))
         except:
             pass
-# Listens for messages from the server and updates the canvas accordingly
+
 def receive_thread():
     buffer = ""
     while True:
@@ -82,20 +78,6 @@ def receive_thread():
                             if "ink" in canvas.gettags(item):
                                 canvas.delete(item)
                     root.after(0, erase_remote)
-                
-                elif data['type'] == 'join':
-                    def on_join(d=data):
-                        if d['user'] not in connected_users:
-                            connected_users.append(d['user'])
-                        refresh_user_list()
-                    root.after(0, on_join)
-
-                elif data['type'] == 'leave':
-                    def on_leave(d=data):
-                        if d['user'] in connected_users:
-                            connected_users.remove(d['user'])
-                        refresh_user_list()
-                root.after(0, on_leave)
         except:
             break
 
@@ -164,14 +146,9 @@ def clear_board():
     canvas.delete("ink") 
     send_to_server({'type': 'clear'})
 
-def refresh_user_list():
-    for widget in user_list_frame.winfo_children():
-        widget.destroy()
-    for user in connected_users:
-        tk.Label(user_list_frame, text=f'• {user}', bg='#1e1e1e', fg='#00ff99',
-                 font=('Arial', 9), anchor='w').pack(fill=tk.X, padx=5)
-
 # --- 5. Main Window & Layout ---
+
+
 toolbar = tk.Frame(root)
 toolbar.pack(fill=tk.X)
 
@@ -181,33 +158,22 @@ for color in colors:
     lbl.bind('<Button-1>', lambda e, c=color: set_color(c))
     lbl.pack(side=tk.LEFT, padx=1)
 
-tk.Button(toolbar, text='🎨 Pick Color', command=pick_color).pack(side=tk.LEFT)
-color_preview = tk.Label(toolbar, bg=current_color, width=3, relief='solid')
-color_preview.pack(side=tk.LEFT, padx=5)
-
 slider = tk.Scale(toolbar, from_=1, to=50, orient=tk.HORIZONTAL, label='Brush Size')
 slider.pack(side=tk.LEFT)
 
 eraser_btn = tk.Button(toolbar, text='Eraser', command=toggle_eraser)
 eraser_btn.pack(side=tk.LEFT)
 
+tk.Button(toolbar, text='🎨 Pick Color', command=pick_color).pack(side=tk.LEFT)
+color_preview = tk.Label(toolbar, bg=current_color, width=3, relief='solid')
+color_preview.pack(side=tk.LEFT, padx=5)
 tk.Button(toolbar, text='Clear All', command=clear_board).pack(side=tk.LEFT)
 
 canvas = tk.Canvas(root, bg='#121111', highlightthickness=0)
-
-user_frame = tk.Frame(root, bg='#1e1e1e', width=120)
-user_frame.pack(side=tk.RIGHT, fill=tk.Y)
-user_frame.pack_propagate(False)
-
-tk.Label(user_frame, text='Users:', bg='#1e1e1e', fg='white',
-         font=('Arial', 10, 'bold')).pack(anchor='w', padx=5, pady=5)
-
-user_list_frame = tk.Frame(user_frame, bg='#1e1e1e')
-user_list_frame.pack(fill=tk.BOTH, expand=True)
 canvas.pack(fill=tk.BOTH, expand=True)
 
 cursor_circle = canvas.create_oval(0, 0, 0, 0, outline='cyan')
-my_label = canvas.create_text(0, 0, text=username, fill="#F700FF")
+my_label = canvas.create_text(0, 0, text=username, fill="#EB00FF")
 
 canvas.bind('<ButtonPress-1>', start_draw)
 canvas.bind('<B1-Motion>', lambda e: (draw_on_canvas(e), update_cursor(e)))
@@ -215,9 +181,6 @@ canvas.bind('<Motion>', update_cursor)
 canvas.config(cursor="none")
 
 if connected:
-    send_to_server({'type': 'join', 'user': username})
     threading.Thread(target=receive_thread, daemon=True).start()
 
-
-refresh_user_list()
 root.mainloop()
